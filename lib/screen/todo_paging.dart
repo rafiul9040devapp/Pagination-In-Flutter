@@ -12,7 +12,7 @@ class TodoPaging extends StatefulWidget {
   State<TodoPaging> createState() => _TodoPagingState();
 }
 
-class _TodoPagingState extends State<TodoPaging> with TickerProviderStateMixin{
+class _TodoPagingState extends State<TodoPaging> with TickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   List<Todo> todoList = [];
   late int total;
@@ -27,8 +27,8 @@ class _TodoPagingState extends State<TodoPaging> with TickerProviderStateMixin{
       vsync: this,
       duration: const Duration(seconds: 5),
     )..addListener(() {
-      setState(() {});
-    });
+        setState(() {});
+      });
     controller.repeat(reverse: true);
     fetchTodoFromApi();
     _scrollController.addListener(loadMoreData);
@@ -58,11 +58,17 @@ class _TodoPagingState extends State<TodoPaging> with TickerProviderStateMixin{
                   ),
                   title: Text(todo.todo ?? ''),
                 ),
-                if(index == todoList.length-1 && _isLoading)
-                   Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Center(child: CircularProgressIndicator(value: controller.value,),),
+                Visibility(
+                  visible: loader(index),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        value: controller.value,
+                      ),
+                    ),
                   ),
+                ),
               ],
             );
           },
@@ -77,6 +83,8 @@ class _TodoPagingState extends State<TodoPaging> with TickerProviderStateMixin{
       ),
     );
   }
+
+  bool loader(int index) => (index == todoList.length - 1) && _isLoading;
 
   Future<void> fetchTodoFromApi() async {
     _isLoading = true;
