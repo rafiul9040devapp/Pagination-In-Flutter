@@ -87,30 +87,71 @@ class _TodoPagingState extends State<TodoPaging> with TickerProviderStateMixin {
   bool loader(int index) => (index == todoList.length - 1) && _isLoading;
 
   Future<void> fetchTodoFromApi() async {
-    _isLoading = true;
-    setState(() {});
-
-    Uri uri = Uri.parse(
-        'https://dummyjson.com/todos?limit=$limit&skip=${(page - 1) * limit}');
-    Response response = await get(uri);
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> responseData = jsonDecode(response.body);
-      total = responseData['total'];
-      List<Todo> newTodos = (responseData['todos'] as List<dynamic>)
-          .map((response) => Todo.fromJson(response))
-          .toList();
-      todoList.addAll(newTodos);
-      page++;
-      _isLoading = false;
+    try {
+      _isLoading = true;
       setState(() {});
-    } else {
+
+      final Uri uri = Uri.parse(
+          'https://dummyjson.com/todos?limit=$limit&skip=${(page - 1) * limit}');
+      final Response response = await get(uri);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        total = responseData['total'];
+        List<Todo> newTodos = (responseData['todos'] as List<dynamic>)
+            .map((response) => Todo.fromJson(response))
+            .toList();
+        todoList.addAll(newTodos);
+        page++;
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Unable to load the TODO')),
+          );
+        }
+      }
+    } catch (error) {
+      // Handle any exceptions or errors during the API call
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Unable to load the TODO')));
+          const SnackBar(content: Text('Error occurred while fetching TODOs')),
+        );
+      }
+    } finally {
+      // Set loading state to false whether the request was successful or not
+      if (mounted) {
+        _isLoading = false;
+        setState(() {});
       }
     }
   }
+
+
+  // Future<void> fetchTodoFromApi() async {
+  //   _isLoading = true;
+  //   setState(() {});
+  //
+  //   Uri uri = Uri.parse(
+  //       'https://dummyjson.com/todos?limit=$limit&skip=${(page - 1) * limit}');
+  //   Response response = await get(uri);
+  //
+  //   if (response.statusCode == 200) {
+  //     final Map<String, dynamic> responseData = jsonDecode(response.body);
+  //     total = responseData['total'];
+  //     List<Todo> newTodos = (responseData['todos'] as List<dynamic>)
+  //         .map((response) => Todo.fromJson(response))
+  //         .toList();
+  //     todoList.addAll(newTodos);
+  //     page++;
+  //     _isLoading = false;
+  //     setState(() {});
+  //   } else {
+  //     if (context.mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Unable to load the TODO')));
+  //     }
+  //   }
+  // }
 
   void loadMoreData() {
     if (_scrollController.position.pixels ==
@@ -123,6 +164,7 @@ class _TodoPagingState extends State<TodoPaging> with TickerProviderStateMixin {
   @override
   void dispose() {
     controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 }
