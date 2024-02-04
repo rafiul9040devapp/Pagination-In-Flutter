@@ -105,17 +105,13 @@ class _TodoPagingState extends State<TodoPaging> with TickerProviderStateMixin {
         page++;
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Unable to load the TODO')),
-          );
+          popUpMessage('Unable to load the TODO');
         }
       }
     } catch (error) {
       // Handle any exceptions or errors during the API call
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error occurred while fetching TODOs')),
-        );
+        popUpMessage('Error occurred while fetching TODOs');
       }
     } finally {
       // Set loading state to false whether the request was successful or not
@@ -126,6 +122,13 @@ class _TodoPagingState extends State<TodoPaging> with TickerProviderStateMixin {
     }
   }
 
+  void popUpMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
+  }
 
   // Future<void> fetchTodoFromApi() async {
   //   _isLoading = true;
